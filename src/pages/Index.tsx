@@ -1,8 +1,11 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import FileUpload from "@/components/FileUpload";
-import AuthButtons from "@/components/AuthButtons"; // Import AuthButtons
+import AuthButtons from "@/components/AuthButtons";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 const Index = () => {
+  const { user } = useAuth(); // Get user from AuthContext
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
       <div className="text-center mb-8">
@@ -13,8 +16,8 @@ const Index = () => {
           Начните создавать свой удивительный проект здесь!
         </p>
       </div>
-      <AuthButtons /> {/* Add AuthButtons here */}
-      <FileUpload />
+      <AuthButtons />
+      {user && <FileUpload />} {/* Render FileUpload only if user is logged in */}
       <MadeWithDyad />
     </div>
   );
