@@ -21,6 +21,13 @@ const FileUpload: React.FC = () => {
     }
   };
 
+  const handleClearSelection = () => {
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setIsUploading(false);
+    setIsProcessingBackend(false);
+  };
+
   const handleUpload = () => {
     if (!selectedFile) {
       toast({
@@ -111,13 +118,28 @@ const FileUpload: React.FC = () => {
           </p>
         </div>
       )}
-      <Button
-        onClick={handleUpload}
-        disabled={!selectedFile || isUploading || isProcessingBackend}
-        className="w-full"
-      >
-        {isUploading ? "Загрузка..." : isProcessingBackend ? "Ожидание обработки..." : "Загрузить файл"}
-      </Button>
+      <div className="flex gap-2">
+        {selectedFile && !isUploading && !isProcessingBackend && (
+          <Button
+            onClick={handleClearSelection}
+            variant="outline"
+            className="flex-1"
+          >
+            Очистить выбор
+          </Button>
+        )}
+        <Button
+          onClick={isProcessingBackend ? handleClearSelection : handleUpload}
+          disabled={!selectedFile && !isProcessingBackend || isUploading}
+          className="flex-1"
+        >
+          {isUploading
+            ? "Загрузка..."
+            : isProcessingBackend
+            ? "Загрузить другой файл"
+            : "Загрузить файл"}
+        </Button>
+      </div>
     </div>
   );
 };
