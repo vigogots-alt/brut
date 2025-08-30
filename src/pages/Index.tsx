@@ -1,5 +1,6 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import FileUpload from "@/components/FileUpload";
+import AuthButtons from "@/components/AuthButtons"; // Import AuthButtons
 
 const Index = () => {
   return (
@@ -12,6 +13,7 @@ const Index = () => {
           Начните создавать свой удивительный проект здесь!
         </p>
       </div>
+      <AuthButtons /> {/* Add AuthButtons here */}
       <FileUpload />
       <MadeWithDyad />
     </div>
