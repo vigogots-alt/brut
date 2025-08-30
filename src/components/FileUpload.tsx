@@ -9,11 +9,13 @@ const FileUpload: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isProcessingBackend, setIsProcessingBackend] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
-      setUploadProgress(0); // Reset progress when a new file is selected
+      setUploadProgress(0); // Сброс прогресса при выборе нового файла
+      setIsProcessingBackend(false); // Сброс состояния обработки
     } else {
       setSelectedFile(null);
     }
@@ -30,6 +32,7 @@ const FileUpload: React.FC = () => {
     }
 
     setIsUploading(true);
+    setIsProcessingBackend(false); // Убедимся, что это false в начале загрузки
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -47,15 +50,17 @@ const FileUpload: React.FC = () => {
       if (xhr.status === 200) {
         toast({
           title: "Успех",
-          description: "Файл успешно загружен!",
+          description: "Файл принят, ожидайте обработки.",
         });
-        setSelectedFile(null); // Clear selected file after successful upload
+        setIsProcessingBackend(true); // Устанавливаем состояние обработки
+        // Мы не очищаем selectedFile здесь, так как он теперь "обрабатывается"
       } else {
         toast({
           title: "Ошибка загрузки",
           description: `Произошла ошибка при загрузке файла: ${xhr.statusText}`,
           variant: "destructive",
         });
+        setSelectedFile(null); // Очищаем при ошибке
       }
     };
 
@@ -66,6 +71,7 @@ const FileUpload: React.FC = () => {
         description: "Не удалось подключиться к серверу.",
         variant: "destructive",
       });
+      setSelectedFile(null); // Очищаем при ошибке
     };
 
     xhr.open("POST", "/.netlify/functions/upload", true);
@@ -81,7 +87,7 @@ const FileUpload: React.FC = () => {
           id="file-upload"
           type="file"
           onChange={handleFileChange}
-          disabled={isUploading}
+          disabled={isUploading || isProcessingBackend}
           className="cursor-pointer"
         />
         {selectedFile && (
@@ -98,12 +104,19 @@ const FileUpload: React.FC = () => {
           </p>
         </div>
       )}
+      {isProcessingBackend && !isUploading && (
+        <div className="mb-4 text-center text-blue-600 dark:text-blue-400">
+          <p className="text-sm">
+            Файл принят. Ожидайте обработки на бэкенде...
+          </p>
+        </div>
+      )}
       <Button
         onClick={handleUpload}
-        disabled={!selectedFile || isUploading}
+        disabled={!selectedFile || isUploading || isProcessingBackend}
         className="w-full"
       >
-        {isUploading ? "Загрузка..." : "Загрузить файл"}
+        {isUploading ? "Загрузка..." : isProcessingBackend ? "Ожидание обработки..." : "Загрузить файл"}
       </Button>
     </div>
   );
