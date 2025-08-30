@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/components/ui/use-toast";
+import { showSuccess, showError } from "@/utils/toast"; // Используем утилиту toast
 
 const FileUpload: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -30,11 +30,7 @@ const FileUpload: React.FC = () => {
 
   const handleUpload = () => {
     if (!selectedFile) {
-      toast({
-        title: "Ошибка",
-        description: "Пожалуйста, выберите файл для загрузки.",
-        variant: "destructive",
-      });
+      showError("Пожалуйста, выберите файл для загрузки.");
       return;
     }
 
@@ -55,29 +51,18 @@ const FileUpload: React.FC = () => {
     xhr.onload = () => {
       setIsUploading(false);
       if (xhr.status === 200) {
-        toast({
-          title: "Успех",
-          description: "Файл принят, ожидайте обработки.",
-        });
-        setIsProcessingBackend(true); // Устанавливаем состояние обработки
-        // Мы не очищаем selectedFile здесь, так как он теперь "обрабатывается"
+        showSuccess("Файл успешно загружен в хранилище Supabase!"); // Обновленное сообщение
+        setSelectedFile(null); // Очищаем выбранный файл после успешной загрузки
+        setIsProcessingBackend(false); // Сбрасываем состояние обработки
       } else {
-        toast({
-          title: "Ошибка загрузки",
-          description: `Произошла ошибка при загрузке файла: ${xhr.statusText}`,
-          variant: "destructive",
-        });
+        showError(`Произошла ошибка при загрузке файла: ${xhr.statusText}`);
         setSelectedFile(null); // Очищаем при ошибке
       }
     };
 
     xhr.onerror = () => {
       setIsUploading(false);
-      toast({
-        title: "Ошибка сети",
-        description: "Не удалось подключиться к серверу.",
-        variant: "destructive",
-      });
+      showError("Не удалось подключиться к серверу.");
       setSelectedFile(null); // Очищаем при ошибке
     };
 
