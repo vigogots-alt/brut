@@ -1,6 +1,6 @@
+import { Readable } from "stream"; // Импортируем Readable для создания потока
 import type { Handler, HandlerEvent, HandlerContext } from "@netlify/functions";
 import formidable from "formidable";
-import fs from "fs";
 
 // Helper to parse multipart/form-data
 const parseMultipartForm = async (event: HandlerEvent) => {
@@ -10,9 +10,18 @@ const parseMultipartForm = async (event: HandlerEvent) => {
 
       // formidable ожидает, что тело будет строкой или буфером, а не в кодировке base64.
       // Netlify Functions предоставляют event.body в кодировке base64, если event.isBase64Encoded равно true.
-      const body = event.isBase64Encoded ? Buffer.from(event.body || "", 'base64') : event.body;
+      const bodyBuffer = event.isBase64Encoded
+        ? Buffer.from(event.body || "", "base64")
+        : Buffer.from(event.body || "", "utf8"); // Убедимся, что это буфер
 
-      form.parse(body || "", (err, fields, files) => {
+      // Создаем моковый объект запроса, который реализует достаточно http.IncomingMessage
+      // для работы formidable. Ему нужны 'headers' и он должен быть Readable потоком.
+      const mockRequest = new Readable();
+      mockRequest.headers = event.headers; // Прикрепляем заголовки
+      mockRequest.push(bodyBuffer); // Передаем содержимое тела
+      mockRequest.push(null); // Сигнализируем об окончании потока
+
+      form.parse(mockRequest, (err, fields, files) => {
         if (err) {
           reject(err);
           return;
